@@ -7,9 +7,11 @@
 """
 
 import os
-from math import ceil
+from math import ceil, floor
 from utils import speech_utils, caption_utils
 from moviepy import VideoFileClip, vfx, TextClip, AudioFileClip, CompositeAudioClip, CompositeVideoClip, concatenate_videoclips
+
+# TODO: Comment the process. It's been a week and I'm already lost in my own code.
 
 # Stick to gathering the video details through CMD for now
 video_title = ""
@@ -17,6 +19,7 @@ test = video_title
 video_content = ""
 video_bg = ""
 
+# At this part, we are just retrieving video content information from the user
 available_video_bg = ["rdr2", "dark souls", "sekiro", "got1", "got2"]
 
 while (video_title == ""):
@@ -43,15 +46,12 @@ while (video_bg not in available_video_bg):
     if video_bg not in available_video_bg:
         print("\n\nPlease enter a valid video background!\n\n")
 
-# TODO: Split the content by sentences, then the sentences by caption words (1-3 words). Generate the speech based on the split caption words
-# Prepare the captions for each video clip
+# Prepare the captions for each video clip. Split them into words that can fit in a 9:16 aspect ratio (1-3 words based on length)
 caption_font = "./resources/font/Roboto-Bold.ttf"
 
 """ title_sentences = caption_utils.split_sentences(video_title) """
 title_captions = caption_utils.split_displayed_captions(video_title)
 title_caption_speech_dir = [speech_utils.generate_to_speech(title_captions[i], i, "title") for i in range(len(title_captions))]
-
-print(title_captions)
 
 title_caption_clips = [
     TextClip(
@@ -85,13 +85,15 @@ content_caption_speech = [
     AudioFileClip(speech_dir) for speech_dir in content_caption_speech_dir
 ]
 
+# Put the captions and their respective audio in an object for easy iteration
 title_caption_collection = [{"caption": title_caption_clips[i], "speech": title_caption_speech[i]} for i in range(len(title_caption_clips))] # This is the var to use for handling title captions
 content_caption_collection = [{"caption": content_caption_clips[i], "speech": content_caption_speech[i]} for i in range(len(content_caption_clips))] # This is the var to use for handling content captions
 
+# Load the background video file
 bg_video = VideoFileClip(f'./clips/video/bg/{video_bg}.mp4')
 
-title_duration = sum([ceil(speech.duration) for speech in title_caption_speech])
-content_duration = sum([ceil(speech.duration) for speech in content_caption_speech])
+title_duration = sum([floor(speech.duration) for speech in title_caption_speech])
+content_duration = sum([floor(speech.duration) for speech in content_caption_speech])
 
 title_bg_clip = bg_video.subclipped(0, title_duration)
 content_bg_clip = bg_video.subclipped(title_duration, content_duration + title_duration)
@@ -106,10 +108,13 @@ for pair in title_caption_collection:
 
     caption_duration = current_speech.duration
 
-    current_caption = current_caption.with_start(total_duration).with_end(total_duration + caption_duration).with_position(("center", "center"))
+    current_caption = current_caption.with_start(total_duration).with_duration(caption_duration - 1).with_position(("center", "center"))
+    current_speech = current_speech.with_start(total_duration).with_duration(caption_duration - 1)
     current_caption.audio = CompositeAudioClip([current_speech])
 
-    total_duration = caption_duration + total_duration
+    total_duration = (caption_duration - 1) + total_duration
+    print("Total Duration: ", total_duration)
+    print("Video clip start: ", current_caption.start)
 
     title_caption_clip_collection.append(current_caption)
 
@@ -122,10 +127,11 @@ for pair in content_caption_collection:
 
     caption_duration = current_speech.duration
 
-    current_caption = current_caption.with_start(total_duration).with_duration(total_duration + caption_duration).with_position(("center", "center"))
+    current_caption = current_caption.with_start(total_duration).with_duration(caption_duration - 1).with_position(("center", "center"))
+    current_speech = current_speech.with_start(total_duration).with_duration(caption_duration - 1)
     current_caption.audio = CompositeAudioClip([current_speech])
 
-    total_duration = caption_duration + total_duration
+    total_duration = (caption_duration - 1) + total_duration
 
     content_caption_clip_collection.append(current_caption)
 
