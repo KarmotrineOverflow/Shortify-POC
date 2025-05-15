@@ -7,6 +7,7 @@
 """
 
 import os
+from utils import clip_utils
 from math import ceil, floor
 from moviepy import VideoFileClip, vfx, TextClip, AudioFileClip, CompositeAudioClip, CompositeVideoClip, concatenate_videoclips
 
@@ -46,78 +47,19 @@ while (video_bg not in available_video_bg):
         print("\n\nPlease enter a valid video background!\n\n")
 
 # Prepare the captions for each video clip. Split them into words that can fit in a 9:16 aspect ratio (1-3 words based on length)
-""" title_sentences = caption_utils.split_sentences(video_title) """
+title_clips = clip_utils.create_caption_and_audio_clips(video_title, 'title')
+content_clips = clip_utils.create_caption_and_audio_clips(video_content, 'content')
 
+# Append the caption and speech collection to one big clip
+title_captions = clip_utils.convert_caption_collection_to_clip(title_clips, 0)
+content_captions = clip_utils.convert_caption_collection_to_clip(content_clips, title_captions.duration)
 
-""" content_sentences = caption_utils.split_sentences(video_content) """
-content_captions = caption_utils.split_displayed_captions(video_content)
-content_caption_speech_dir = [speech_utils.generate_to_speech(content_captions[i], i, "content") for i in range(len(content_captions))]
+# Extract subclips from chosen background video
+title_bg_clip = clip_utils.extract_short_video_clip(title_captions.duration, video_bg)
+content_bg_clip = clip_utils.extract_short_video_clip(content_captions.duration, video_bg)
 
-content_caption_clips = [
-        TextClip(
-        text=caption,
-        font=caption_font,    
-        font_size=50,
-        color="#FFFFFF",
-        text_align="center"
-    ) for caption in content_captions
-]
-
-content_caption_speech = [
-    AudioFileClip(speech_dir) for speech_dir in content_caption_speech_dir
-]
-
-# Put the captions and their respective audio in an object for easy iteration
-content_caption_collection = [{"caption": content_caption_clips[i], "speech": content_caption_speech[i]} for i in range(len(content_caption_clips))] # This is the var to use for handling content captions
-
-# Load the background video file
-bg_video = VideoFileClip(f'./clips/video/bg/{video_bg}.mp4')
-
-title_duration = sum([floor(speech.duration) for speech in title_caption_speech])
-content_duration = sum([floor(speech.duration) for speech in content_caption_speech])
-
-title_bg_clip = bg_video.subclipped(0, title_duration)
-content_bg_clip = bg_video.subclipped(title_duration, content_duration + title_duration)
-
-total_duration = 0
-title_caption_clip_collection = []
-
-for pair in title_caption_collection:
-
-    current_caption = pair["caption"]
-    current_speech = pair["speech"]
-
-    caption_duration = current_speech.duration
-
-    current_caption = current_caption.with_start(total_duration).with_duration(caption_duration - 1).with_position(("center", "center"))
-    current_speech = current_speech.with_start(total_duration).with_duration(caption_duration - 1)
-    current_caption.audio = CompositeAudioClip([current_speech])
-
-    total_duration = (caption_duration - 1) + total_duration
-    print("Total Duration: ", total_duration)
-    print("Video clip start: ", current_caption.start)
-
-    title_caption_clip_collection.append(current_caption)
-
-content_caption_clip_collection = []
-
-for pair in content_caption_collection:
-
-    current_caption = pair["caption"]
-    current_speech = pair["speech"]
-
-    caption_duration = current_speech.duration
-
-    current_caption = current_caption.with_start(total_duration).with_duration(caption_duration - 1).with_position(("center", "center"))
-    current_speech = current_speech.with_start(total_duration).with_duration(caption_duration - 1)
-    current_caption.audio = CompositeAudioClip([current_speech])
-
-    total_duration = (caption_duration - 1) + total_duration
-
-    content_caption_clip_collection.append(current_caption)
-
-title_final_clip = CompositeVideoClip([title_bg_clip] + title_caption_clip_collection)
-content_final_clip = CompositeVideoClip([content_bg_clip] + content_caption_clip_collection)
+title_final_clip = CompositeVideoClip([title_bg_clip, title_captions])
+content_final_clip = CompositeVideoClip([content_bg_clip, content_captions])
 
 final_clip = concatenate_videoclips([title_final_clip, content_final_clip])
 final_clip.write_videofile('./clips/video/full_clip.mp4')

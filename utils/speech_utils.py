@@ -8,14 +8,10 @@ def generate_to_speech(text:str, file_name:str, dir:str):
 
     Generates the given text into an MP3 speech file with the given name
 
-    Properties:
+    :param str text: The text that the generative speech will base on
+    :param str title: The file name that will be given to the generated MP3
 
-    - `text`: (str) - The text that the generative speech will base on
-    - `title`: (str) - The file name that will be given to the generated MP3
-
-    Returns:
-
-    - `path`: (str) - The file directory of the generated MP3 file
+    :return: A string of the file directory for the generated MP3 file
       
     """
 
