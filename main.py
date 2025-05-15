@@ -51,8 +51,8 @@ title_clips = clip_utils.create_caption_and_audio_clips(video_title, 'title')
 content_clips = clip_utils.create_caption_and_audio_clips(video_content, 'content')
 
 # Append the caption and speech collection to one big clip
-title_captions = clip_utils.convert_caption_collection_to_clip(title_clips, 0)
-content_captions = clip_utils.convert_caption_collection_to_clip(content_clips, title_captions.duration)
+title_captions = clip_utils.convert_caption_collection_to_clip(title_clips)
+content_captions = clip_utils.convert_caption_collection_to_clip(content_clips)
 
 # Extract subclips from chosen background video
 title_bg_clip = clip_utils.extract_short_video_clip(title_captions.duration, video_bg)

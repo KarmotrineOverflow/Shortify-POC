@@ -67,7 +67,7 @@ def extract_short_video_clip(length:float, selected_bg:str):
     """
     import random
 
-    bg_video = VideoFileClip(f'../clips/video/bg/{selected_bg}.mp4')
+    bg_video = VideoFileClip(f'./clips/video/bg/{selected_bg}.mp4')
     rand_clip_start = random.randint(0, int((bg_video.duration - length)))
     clip_end = rand_clip_start + length
 
@@ -75,30 +75,39 @@ def extract_short_video_clip(length:float, selected_bg:str):
 
     return extracted_clip
 
-def convert_caption_collection_to_clip(collection:list, start:float):
+def convert_caption_collection_to_clip(collection:list):
 
-    total_duration = start
+    total_duration = 0
     caption_clip_collection = []
 
     for obj in collection:
 
         current_captions = obj["captions"]
+        new_caption_collection = []
         current_speech = obj["speech"]        
 
         speech_duration = current_speech.duration
+        print("Sentence: ", obj["sentence"])
+        print("Speech duration: ", speech_duration)
         caption_duration = speech_duration / len(current_captions)
 
         for i in range(len(current_captions)):
-            current_captions[i] = current_captions[i].with_start(total_duration).with_duration(caption_duration).with_position(("center", "center"))        
+            current_caption = current_captions[i]
+            current_caption = current_caption.with_start(total_duration).with_duration(caption_duration).with_position(("center", "center"))
+
+            total_duration = caption_duration + total_duration
+
+            new_caption_collection.append(current_caption)
 
         # Combine the modified caption clips and set the speech as the audio of the resulting clip 
-        appended_caption_clips = CompositeVideoClip(current_captions)
+        appended_caption_clips = CompositeVideoClip(new_caption_collection)
+        print("Appended Captions Duration: ", appended_caption_clips.duration)
         current_speech = current_speech.with_start(appended_caption_clips.start).with_duration(appended_caption_clips.duration)
         appended_caption_clips.audio = current_speech
         
         caption_clip_collection.append(appended_caption_clips)
 
-        total_duration = appended_caption_clips + total_duration
+        print("Total Duration: ", total_duration)
 
     resulting_clip = CompositeVideoClip(caption_clip_collection)
 
