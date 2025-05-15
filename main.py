@@ -8,7 +8,6 @@
 
 import os
 from math import ceil, floor
-from utils import speech_utils, caption_utils
 from moviepy import VideoFileClip, vfx, TextClip, AudioFileClip, CompositeAudioClip, CompositeVideoClip, concatenate_videoclips
 
 # TODO: Comment the process. It's been a week and I'm already lost in my own code.
@@ -47,25 +46,8 @@ while (video_bg not in available_video_bg):
         print("\n\nPlease enter a valid video background!\n\n")
 
 # Prepare the captions for each video clip. Split them into words that can fit in a 9:16 aspect ratio (1-3 words based on length)
-caption_font = "./resources/font/Roboto-Bold.ttf"
-
 """ title_sentences = caption_utils.split_sentences(video_title) """
-title_captions = caption_utils.split_displayed_captions(video_title)
-title_caption_speech_dir = [speech_utils.generate_to_speech(title_captions[i], i, "title") for i in range(len(title_captions))]
 
-title_caption_clips = [
-    TextClip(
-        text=caption,
-        font=caption_font,    
-        font_size=50,
-        color="#FFFFFF",
-        text_align="center"
-    ) for caption in title_captions
-]
-
-title_caption_speech = [
-    AudioFileClip(speech_dir) for speech_dir in title_caption_speech_dir
-]
 
 """ content_sentences = caption_utils.split_sentences(video_content) """
 content_captions = caption_utils.split_displayed_captions(video_content)
@@ -86,7 +68,6 @@ content_caption_speech = [
 ]
 
 # Put the captions and their respective audio in an object for easy iteration
-title_caption_collection = [{"caption": title_caption_clips[i], "speech": title_caption_speech[i]} for i in range(len(title_caption_clips))] # This is the var to use for handling title captions
 content_caption_collection = [{"caption": content_caption_clips[i], "speech": content_caption_speech[i]} for i in range(len(content_caption_clips))] # This is the var to use for handling content captions
 
 # Load the background video file

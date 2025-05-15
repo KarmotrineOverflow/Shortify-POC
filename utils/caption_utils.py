@@ -45,3 +45,7 @@ def split_displayed_captions(text_excerpt):
 
     print(new_combinations)
     return new_combinations
+
+def attach_audio_to_caption(caption, audio, start, end):
+
+    return None
