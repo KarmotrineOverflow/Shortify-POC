@@ -1,5 +1,5 @@
 from utils import speech_utils, caption_utils
-from moviepy import TextClip, AudioFileClip, VideoFileClip, CompositeVideoClip, CompositeAudioClip, concatenate_videoclips, concatenate_audioclips
+from moviepy import TextClip, AudioFileClip, VideoFileClip, CompositeVideoClip, CompositeAudioClip, concatenate_videoclips, concatenate_audioclips, afx
 
 caption_font = "./resources/font/Roboto-Bold.ttf"
 
@@ -73,7 +73,7 @@ def extract_short_video_clip(length:float, selected_bg:str):
     rand_clip_start = random.randint(0, int((bg_video.duration - length)))
     clip_end = rand_clip_start + length
 
-    extracted_clip:VideoFileClip = bg_video.subclipped(rand_clip_start, clip_end)
+    extracted_clip:VideoFileClip = bg_video.subclipped(rand_clip_start, clip_end).with_effects([afx.MultiplyVolume(0.5)])
 
     return extracted_clip
 
@@ -95,7 +95,7 @@ def convert_caption_collection_to_clip(collection:list):
         for caption in current_captions:
             caption_duration = _get_caption_length_from_speech(caption.text)
 
-            current_caption = caption.with_duration(caption_duration).with_position(('center', 'center'))
+            current_caption = caption.with_duration(caption_duration)
             total_duration = caption_duration + total_duration
 
             print("Caption duration: ", current_caption.duration)
