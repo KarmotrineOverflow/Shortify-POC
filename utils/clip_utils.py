@@ -15,7 +15,7 @@ def create_caption_and_audio_clips(text_excerpt:str, excerpt_type:str):
     """
 
     try:
-        if excerpt_type not in ['title', 'content']:
+        if excerpt_type not in ['title', 'content', 'caption_length']:
             raise ValueError("excerpt_type can only be either 'title' or 'content'")
   
         sentences = caption_utils.split_sentences(text_excerpt)
@@ -31,7 +31,10 @@ def create_caption_and_audio_clips(text_excerpt:str, excerpt_type:str):
                     font=caption_font,    
                     font_size=50,
                     color="#FFFFFF",
-                    text_align="center"
+                    method="caption",
+                    text_align="center",
+                    horizontal_align="center",
+                    vertical_align="center"
                 ) for caption in collection
             ]
 
@@ -77,10 +80,12 @@ def extract_short_video_clip(length:float, selected_bg:str):
 
 def convert_caption_collection_to_clip(collection:list):
 
-    total_duration = 0
+    total_duration:float = 0
     caption_clip_collection = []
 
     for obj in collection:
+
+        current_duration = total_duration
 
         current_captions = obj["captions"]
         new_caption_collection = []
@@ -89,26 +94,33 @@ def convert_caption_collection_to_clip(collection:list):
         speech_duration = current_speech.duration
         print("Sentence: ", obj["sentence"])
         print("Speech duration: ", speech_duration)
-        caption_duration = speech_duration / len(current_captions)
 
-        for i in range(len(current_captions)):
-            current_caption = current_captions[i]
-            current_caption = current_caption.with_start(total_duration).with_duration(caption_duration).with_position(("center", "center"))
+        for caption in current_captions:
+            caption_duration = _get_caption_legnth_from_speech(caption.text)
 
+            current_caption = caption.with_start(total_duration).with_duration(caption_duration).with_position(('center', 'center'))
             total_duration = caption_duration + total_duration
+
+            print("Caption duration: ", current_caption.duration)
 
             new_caption_collection.append(current_caption)
 
         # Combine the modified caption clips and set the speech as the audio of the resulting clip 
         appended_caption_clips = CompositeVideoClip(new_caption_collection)
-        print("Appended Captions Duration: ", appended_caption_clips.duration)
-        current_speech = current_speech.with_start(appended_caption_clips.start).with_duration(appended_caption_clips.duration)
+        appended_caption_clips = appended_caption_clips.with_start(current_duration)
+        current_speech = current_speech.with_start(current_duration).with_duration(speech_duration)        
         appended_caption_clips.audio = current_speech
         
         caption_clip_collection.append(appended_caption_clips)
 
-        print("Total Duration: ", total_duration)
-
     resulting_clip = CompositeVideoClip(caption_clip_collection)
 
     return resulting_clip
+
+def _get_caption_legnth_from_speech(caption_part):
+    caption_part_speech_dir = speech_utils.generate_to_speech(caption_part, "temp", 'caption_length')
+    caption_part_speech = AudioFileClip(caption_part_speech_dir)
+
+    caption_length:float = caption_part_speech.duration - 1
+
+    return caption_length
