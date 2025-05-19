@@ -67,6 +67,10 @@ final_clip = concatenate_videoclips([title_final_clip, content_final_clip])
 final_clip_with_bg_audio = clip_utils.attach_bg_audio_to_video(bg_audio_clip, final_clip)
 final_clip_with_bg_audio = clip_utils.change_aspect_ratio(final_clip_with_bg_audio, (9, 16))
 
+# TODO: Replace the placeholder font
+# TODO: Add text clip effects
+# TODO: Add video transitions
+
 final_clip_with_bg_audio.write_videofile('./clips/video/full_clip.mp4')
 
 """ 
