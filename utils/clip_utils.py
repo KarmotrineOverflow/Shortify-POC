@@ -1,5 +1,5 @@
 from utils import speech_utils, caption_utils
-from moviepy import TextClip, AudioFileClip, VideoFileClip, CompositeVideoClip, CompositeAudioClip, concatenate_videoclips, concatenate_audioclips, afx
+from moviepy import TextClip, AudioFileClip, VideoFileClip, CompositeVideoClip, CompositeAudioClip, concatenate_videoclips, afx
 
 caption_font = "./resources/font/Roboto-Bold.ttf"
 
@@ -74,7 +74,7 @@ def extract_short_clip(length:float, selected_bg:str, clip_type:str):
 
         if clip_type == "video":
             main_clip = VideoFileClip(f'./clips/video/bg/{selected_bg}.mp4')
-            volume = 0.5
+            volume = 0.3
         elif clip_type == "audio":
             main_clip = AudioFileClip(f'./clips/audio/bg/{selected_bg}.mp3')
             volume = 0.1
@@ -135,6 +135,26 @@ def attach_bg_audio_to_video(audio, video):
     video.audio = paired_bg_and_caption_audio
 
     return video
+
+def change_aspect_ratio(clip:VideoFileClip|CompositeVideoClip, aspect_ratio:tuple):
+    (w, h) = clip.size
+    (nw, nh) = aspect_ratio
+
+    crop_width = h * nw/nh
+
+    x1, x2 = (w - crop_width)//2, (w + crop_width)//2
+    y1, y2 = 0, h
+
+    cropped_clip = clip.cropped( 
+        x1=x1,
+        x2=x2, 
+        y1=y1, 
+        y2=y2
+    )
+
+    cropped_clip = cropped_clip.resized((720, 1280))
+
+    return cropped_clip
 
 def _get_caption_length_from_speech(caption_part):
     caption_part_speech_dir = speech_utils.generate_to_speech(caption_part, "temp", 'caption_length')

@@ -6,11 +6,9 @@
 
 """
 
-import os
 from random import randint
 from utils import clip_utils
-from math import ceil, floor
-from moviepy import VideoFileClip, vfx, TextClip, AudioFileClip, CompositeAudioClip, CompositeVideoClip, concatenate_videoclips
+from moviepy import CompositeVideoClip, concatenate_videoclips
 
 # TODO: Comment the process. It's been a week and I'm already lost in my own code.
 
@@ -67,6 +65,8 @@ content_final_clip = CompositeVideoClip([content_bg_clip, content_captions])
 
 final_clip = concatenate_videoclips([title_final_clip, content_final_clip])
 final_clip_with_bg_audio = clip_utils.attach_bg_audio_to_video(bg_audio_clip, final_clip)
+final_clip_with_bg_audio = clip_utils.change_aspect_ratio(final_clip_with_bg_audio, (9, 16))
+
 final_clip_with_bg_audio.write_videofile('./clips/video/full_clip.mp4')
 
 """ 
