@@ -7,6 +7,7 @@
 """
 
 import os
+from random import randint
 from utils import clip_utils
 from math import ceil, floor
 from moviepy import VideoFileClip, vfx, TextClip, AudioFileClip, CompositeAudioClip, CompositeVideoClip, concatenate_videoclips
@@ -55,14 +56,18 @@ title_captions = clip_utils.convert_caption_collection_to_clip(title_clips)
 content_captions = clip_utils.convert_caption_collection_to_clip(content_clips)
 
 # Extract subclips from chosen background video
-title_bg_clip = clip_utils.extract_short_video_clip(title_captions.duration, video_bg)
-content_bg_clip = clip_utils.extract_short_video_clip(content_captions.duration, video_bg)
+title_bg_clip = clip_utils.extract_short_clip(title_captions.duration, video_bg, "video")
+content_bg_clip = clip_utils.extract_short_clip(content_captions.duration, video_bg, "video")
+
+rand_audio_file = f"audio_{randint(0,2)}"
+bg_audio_clip = clip_utils.extract_short_clip((title_captions.duration + content_captions.duration), rand_audio_file, "audio")
 
 title_final_clip = CompositeVideoClip([title_bg_clip, title_captions])
 content_final_clip = CompositeVideoClip([content_bg_clip, content_captions])
 
 final_clip = concatenate_videoclips([title_final_clip, content_final_clip])
-final_clip.write_videofile('./clips/video/full_clip.mp4')
+final_clip_with_bg_audio = clip_utils.attach_bg_audio_to_video(bg_audio_clip, final_clip)
+final_clip_with_bg_audio.write_videofile('./clips/video/full_clip.mp4')
 
 """ 
 # Generate the speeches to be used in the short form video

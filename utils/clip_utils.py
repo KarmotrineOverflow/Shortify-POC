@@ -56,7 +56,7 @@ def create_caption_and_audio_clips(text_excerpt:str, excerpt_type:str):
     except Exception as e:
         print(str(e))
 
-def extract_short_video_clip(length:float, selected_bg:str):
+def extract_short_clip(length:float, selected_bg:str, clip_type:str):
     """ 
         Extracts a random part from the selected background video based on the given length
 
@@ -64,18 +64,32 @@ def extract_short_video_clip(length:float, selected_bg:str):
 
         :param float length: the total length of the captions that will be used as basis for the background clip length
         :param str selected_bg: the name of the selected MP4 background clip
+        :param str clip_type: The type of background clip to be extracted. Can be 'video' or 'audio'
         :return: the extracted `VideoClip` from the chosen background video clip
 
     """
     import random
 
-    bg_video = VideoFileClip(f'./clips/video/bg/{selected_bg}.mp4')
-    rand_clip_start = random.randint(0, int((bg_video.duration - length)))
-    clip_end = rand_clip_start + length
+    try:
 
-    extracted_clip:VideoFileClip = bg_video.subclipped(rand_clip_start, clip_end).with_effects([afx.MultiplyVolume(0.5)])
+        if clip_type == "video":
+            main_clip = VideoFileClip(f'./clips/video/bg/{selected_bg}.mp4')
+            volume = 0.5
+        elif clip_type == "audio":
+            main_clip = AudioFileClip(f'./clips/audio/bg/{selected_bg}.mp3')
+            volume = 0.1
+        else:
+            raise ValueError("clip_type can only either be 'video' or 'audio'")
+        
+        rand_clip_start = random.randint(0, int((main_clip.duration - length)))
+        clip_end = rand_clip_start + length
 
-    return extracted_clip
+        extracted_clip:VideoFileClip = main_clip.subclipped(rand_clip_start, clip_end).with_effects([afx.MultiplyVolume(volume)]).with_start(0)
+
+        return extracted_clip
+    
+    except Exception as e:
+        print(str(e))
 
 def convert_caption_collection_to_clip(collection:list):
 
@@ -95,7 +109,7 @@ def convert_caption_collection_to_clip(collection:list):
         for caption in current_captions:
             caption_duration = _get_caption_length_from_speech(caption.text)
 
-            current_caption = caption.with_duration(caption_duration)
+            current_caption = caption.with_duration(caption_duration).with_position(("center", "center")).with_fps(20)
             total_duration = caption_duration + total_duration
 
             print("Caption duration: ", current_caption.duration)
@@ -110,9 +124,17 @@ def convert_caption_collection_to_clip(collection:list):
         
         caption_clip_collection.append(appended_caption_clips)
 
-    resulting_clip = concatenate_videoclips(caption_clip_collection)
+    resulting_clip = concatenate_videoclips(caption_clip_collection).with_position(("center", "center"))
 
     return resulting_clip
+
+def attach_bg_audio_to_video(audio, video):
+    caption_audio = video.audio
+    paired_bg_and_caption_audio = CompositeAudioClip([caption_audio, audio])
+
+    video.audio = paired_bg_and_caption_audio
+
+    return video
 
 def _get_caption_length_from_speech(caption_part):
     caption_part_speech_dir = speech_utils.generate_to_speech(caption_part, "temp", 'caption_length')

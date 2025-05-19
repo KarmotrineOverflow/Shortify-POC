@@ -17,7 +17,6 @@ def generate_to_speech(text:str, file_name:str, dir:str):
 
     generated_mp3_dir = f"{file_name}.mp3"
 
-    # TODO: Try separating each clip to their own dirs using the title
     try:
         os.makedirs(f'{os.getcwd()}\\clips\\audio\\{dir}')
 

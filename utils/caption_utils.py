@@ -9,7 +9,7 @@ We need functions for:
 
 def split_sentences(text_block):
 
-    sentences = text_block.split('.')
+    sentences = text_block.split('.|. |, |?|? ')
     print(sentences)
 
     if sentences is [None]:
